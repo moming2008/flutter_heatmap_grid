@@ -5,7 +5,7 @@
 
 Flutter 网格热力图组件 - 以网格形式展示数据，通过颜色深浅直观地表示数值大小。
 
-![Screenshot](screenshot.png)
+
 
 ## 特性
 
