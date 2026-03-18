@@ -13,7 +13,9 @@ Flutter 网格热力图组件 - 以网格形式展示数据，通过颜色深浅
 
 - **版本**: 0.0.1
 - **SDK**: ^3.9.2
+- **Flutter**: >=3.3.0
 - **平台**: Android, iOS, Web
+- **仓库**: https://github.com/moming2008/flutter_heatmap_grid
 
 ## 目录结构
 
@@ -24,10 +26,10 @@ lib/
 └── src/
     ├── heatmap_grid.dart          # 核心组件 HeatmapGrid + DateHeatmapCell
     ├── models/
-    │   ├── color_mapping.dart     # 颜色映射配置
-    │   └── grid_data.dart         # 网格数据模型
+    │   ├── color_mapping.dart     # 颜色映射配置 + HeatmapColorScheme 枚举
+    │   └── grid_data.dart         # 网格数据模型 GridData + GridCell
     └── utils/
-        └── color_interpolator.dart # 颜色插值工具
+        └── color_interpolator.dart # 颜色插值工具 + LegendItem
 ```
 
 ## 两种使用模式
@@ -66,23 +68,29 @@ HeatmapGrid.githubStyle(
 核心热力图组件，StatelessWidget。
 
 **通用属性**:
-- `colorMapping: ColorMapping` - 颜色映射
-- `cellSize: double` - 单元格大小 (默认 40.0)
-- `cellSpacing: double` - 间距 (默认 2.0)
-- `cellRadius: double` - 圆角 (默认 4.0)
+- `colorMapping: ColorMapping` - 颜色映射（默认 heat）
+- `cellSize: double` - 单元格大小（默认 40.0，githubStyle 12.0）
+- `cellSpacing: double` - 间距（默认 2.0，githubStyle 3.0）
+- `cellRadius: double` - 圆角（默认 4.0，githubStyle 2.0）
 - `cellBorder: Border?` - 单元格边框
-- `showValues: bool` - 显示数值
+- `showValues: bool` - 显示数值（默认 false）
 - `valueTextStyle: TextStyle?` - 数值文本样式
 - `valueFormatter: String Function(double)?` - 数值格式化
 - `showRowLabels/showColumnLabels: bool` - 显示标签
 - `rowLabelStyle/columnLabelStyle: TextStyle?` - 标签样式
 - `labelWidth/labelHeight: double` - 标签尺寸
-- `showLegend: bool` - 显示图例
-- `legendPosition: LegendPosition` - 图例位置
-- `legendStyle: LegendStyle` - 图例样式
-- `legendItemCount: int` - 图例项数量
+- `labelSpacing: double` - 标签与网格间距（默认 8.0）
+- `showLegend: bool` - 显示图例（默认 true）
+- `legendPosition: LegendPosition` - 图例位置（默认 right）
+- `legendStyle: LegendStyle` - 图例样式（默认 gradient）
+- `legendItemCount: int` - 渐变图例项数量（默认 5）
+- `legendSize: double` - 图例尺寸（默认 20.0）
 - `legendLessText/legendMoreText: String?` - 离散图例文本
-- `discreteLegendCount: int` - 离散图例色块数
+- `discreteLegendCount: int` - 离散图例色块数（默认 5）
+- `columnLabelPosition: ColumnLabelPosition` - 列标签位置（默认 top）
+- `rowLabelPosition: RowLabelPosition` - 行标签位置（默认 left）
+- `padding: EdgeInsets` - 内边距（默认 zero）
+- `backgroundColor: Color?` - 背景颜色
 - `onCellTap/onCellLongPress/onCellHover` - 交互回调
 - `tooltipBuilder: String Function(GridCell)?` - 提示构建器
 
@@ -91,19 +99,19 @@ HeatmapGrid.githubStyle(
 
 **日期模式属性**:
 - `dateData: List<DateHeatmapCell>?` - 日期数据列表
-- `rowsPerWeek: int` - 每周行数 (默认 7)
+- `rowsPerWeek: int` - 每周行数（默认 7）
 - `startDate: DateTime?` - 起始日期
 - `endDate: DateTime?` - 结束日期
-- `firstDayOfWeek: int` - 一周第一天 (1=周一, 7=周日)
-- `showMonthLabels: bool` - 显示月份标签
+- `firstDayOfWeek: int` - 一周第一天（1=周一, 7=周日，默认 1）
+- `showMonthLabels: bool` - 显示月份标签（默认 false）
 - `monthLabelStyle: TextStyle?` - 月份标签样式
-- `monthLabelHeight: double` - 月份标签高度
+- `monthLabelHeight: double` - 月份标签高度（默认 20.0）
 - `monthNameBuilder: String Function(int)?` - 月份名称生成器
-- `scrollable: bool` - 是否支持水平滚动
+- `scrollable: bool` - 是否支持水平滚动（默认 false）
 
 **构造函数**:
 - `HeatmapGrid()` - 默认构造
-- `HeatmapGrid.githubStyle()` - GitHub 风格预设 (默认启用日期模式特性)
+- `HeatmapGrid.githubStyle()` - GitHub 风格预设（启用离散图例、月份标签、滚动）
 
 ### DateHeatmapCell (`src/heatmap_grid.dart`)
 
@@ -161,19 +169,39 @@ GridCell({
 **工厂构造函数**:
 - `ColorMapping.heat()` - 蓝→青→绿→黄→红
 - `ColorMapping.grayscale()` - 黑→白
-- `ColorMapping.github()` - GitHub 绿色 (5级)
-- `ColorMapping.githubBlue()` - GitHub 蓝色 (5级)
+- `ColorMapping.github()` - GitHub 绿色（5级离散）
+- `ColorMapping.githubBlue()` - GitHub 蓝色（5级离散）
 - `ColorMapping.custom(colors: [...])` - 自定义
 
-**属性**: `scheme`, `customColors`, `minValue`, `maxValue`, `nullColor`, `reverse`
+**属性**:
+- `scheme: HeatmapColorScheme` - 颜色方案
+- `customColors: List<Color>?` - 自定义颜色列表
+- `minValue/maxValue: double?` - 值范围
+- `nullColor: Color` - 无效值颜色（默认 #CCCCCC）
+- `reverse: bool` - 是否反转颜色
 
 ### ColorInterpolator (`src/utils/color_interpolator.dart`)
 
 颜色插值工具。
 
+**属性**:
+- `colorMapping: ColorMapping` - 颜色映射配置
+- `minValue/maxValue: double` - 值范围
+
 **方法**:
 - `getColor(double value)` - 获取值对应的颜色
 - `getLegendItems({count: 5})` - 获取图例数据
+
+### LegendItem (`src/utils/color_interpolator.dart`)
+
+图例项。
+
+```dart
+LegendItem({
+  required double value,
+  required Color color,
+})
+```
 
 ## 枚举类型
 
@@ -184,6 +212,19 @@ GridCell({
 | `HeatmapColorScheme` | heat, coolWarm, grayscale, greenRed, purpleOrange, ocean, github, githubBlue, custom | 颜色方案 |
 | `ColumnLabelPosition` | top, bottom | 列标签位置 |
 | `RowLabelPosition` | left, right | 行标签位置 |
+
+## 预定义颜色方案
+
+| 方案 | 颜色序列 |
+|------|----------|
+| `heat` | 蓝 → 青 → 绿 → 黄 → 红 |
+| `coolWarm` | 蓝 → 白 → 红 |
+| `grayscale` | 黑 → 白 |
+| `greenRed` | 绿 → 黄 → 红 |
+| `purpleOrange` | 紫 → 橙 |
+| `ocean` | 深蓝 → 浅蓝 → 白 |
+| `github` | #EBEDF0 → #9BE9A8 → #40C463 → #30A14E → #216E39 |
+| `githubBlue` | #EBEDF0 → #9ECFFF → #5CB4F5 → #2B8FD8 → #0E5E8F |
 
 ## 使用建议
 
@@ -213,7 +254,7 @@ HeatmapGrid.githubStyle(
 
 3. **自定义月份名称**：
 ```dart
-monthNameBuilder: (month) => ['一月', '二月', ...][month - 1],
+monthNameBuilder: (month) => ['Jan', 'Feb', 'Mar', ...][month - 1],
 ```
 
 4. **处理点击事件**：
@@ -245,17 +286,35 @@ HeatmapGrid.githubStyle(
 )
 ```
 
+### 设置一周起始日
+
+```dart
+// 美国习惯：周日为第一天
+HeatmapGrid.githubStyle(
+  dateData: dateData,
+  firstDayOfWeek: 7,  // 7 = 周日
+)
+
+// 中国习惯：周一为第一天（默认）
+HeatmapGrid.githubStyle(
+  dateData: dateData,
+  firstDayOfWeek: 1,  // 1 = 周一
+)
+```
+
 ## 扩展指南
 
 ### 添加新颜色方案
 
-1. 在 `HeatmapColorScheme` 枚举添加新值
+1. 在 `HeatmapColorScheme` 枚举（`color_mapping.dart`）添加新值
 2. 在 `ColorMapping._getSchemeColors()` 添加颜色定义
 3. (可选) 添加工厂构造函数
 
 ### 添加新交互
 
-在 `HeatmapGrid._buildCell()` 或 `_buildDateCell()` 中添加新的回调属性和事件处理。
+在 `HeatmapGrid` 类中：
+- 添加新的回调属性（如 `onCellDoubleTap`）
+- 在 `_buildCell()` 或 `_buildDateCell()` 方法中添加事件处理
 
 ### 修改单元格渲染
 
@@ -264,7 +323,11 @@ HeatmapGrid.githubStyle(
 
 ### 修改月份标签
 
-修改 `_buildMonthLabels()` 方法。
+修改 `_buildMonthLabels()` 方法和 `_getDefaultMonthName()` 方法。
+
+### 修改行标签（星期）
+
+修改 `_buildDateRowLabels()` 方法和 `_getWeekdayName()` 方法。
 
 ## 导出文件
 
@@ -275,3 +338,8 @@ HeatmapGrid.githubStyle(
 - `DateHeatmapCell`
 - `ColorInterpolator`, `LegendItem`
 - `LegendPosition`, `LegendStyle`, `ColumnLabelPosition`, `RowLabelPosition`
+
+## 内部类
+
+- `_DateGridInfo` - 日期网格计算信息（私有类）
+- `_HeatColorMapping`, `_GrayscaleColorMapping`, `_GitHubColorMapping`, `_GitHubBlueColorMapping` - 颜色映射工厂实现（私有类）
