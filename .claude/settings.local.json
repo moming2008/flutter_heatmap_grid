@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__mastergo-magic-mcp__mcp__getDsl"
+    ]
+  }
+}
