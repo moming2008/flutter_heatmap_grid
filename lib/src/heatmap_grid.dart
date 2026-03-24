@@ -132,6 +132,9 @@ class HeatmapGrid extends StatelessWidget {
   /// 月份名称生成器
   final String Function(int month)? monthNameBuilder;
 
+  /// 星期名称生成器
+  final String Function(int week)? weekdayNameBuilder;
+
   /// 是否在溢出时允许水平滚动
   final bool scrollable;
 
@@ -179,6 +182,7 @@ class HeatmapGrid extends StatelessWidget {
     this.monthLabelStyle,
     this.monthLabelHeight = 20.0,
     this.monthNameBuilder,
+    this.weekdayNameBuilder,
     this.scrollable = false,
   });
 
@@ -216,6 +220,7 @@ class HeatmapGrid extends StatelessWidget {
     this.monthLabelStyle,
     this.monthLabelHeight = 20.0,
     this.monthNameBuilder,
+    this.weekdayNameBuilder,
     this.scrollable = true,
   })  : cellSize = 12.0,
         cellSpacing = 3.0,
@@ -421,7 +426,7 @@ class HeatmapGrid extends StatelessWidget {
     for (int row = 0; row < rowsPerWeek; row++) {
       // 计算该行对应的星期几
       final weekday = (firstDayOfWeek - 1 + row) % 7 + 1;
-      final weekdayName = _getWeekdayName(weekday);
+      final weekdayName = weekdayNameBuilder?.call(weekday) ?? _getWeekdayName(weekday);
 
       labels.add(
         Container(
